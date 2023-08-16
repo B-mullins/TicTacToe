@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { func } from 'three/examples/jsm/nodes/Nodes.js';
 
 class SceneListRender {
   private static instance: SceneListRender;
@@ -94,6 +95,7 @@ class MainMenu {
     
     onClick = (event: MouseEvent) =>{
       if(!this.isActive){return;}
+      event.stopPropagation();
       const canvas = document.getElementById('app') as HTMLCanvasElement;
       const rect = this.slr.getRenderer().domElement.getBoundingClientRect();
 
@@ -112,11 +114,10 @@ class MainMenu {
         
         switch(element.object.name){
           case "StartGame":
-
+            this.SetActive(false);
             fGameEngine.Reset();
             this.slr.MoveCameraTo(20);
-            this.SetActive(false);
-            fGameEngine.SetActive(true);
+            
             break;
           case "Exit":
             //went with Reload because I am not going to just crash the browser. 
@@ -126,7 +127,7 @@ class MainMenu {
           }
             
         }
-        event.stopPropagation();
+       
     }
 
 }
@@ -188,6 +189,7 @@ class WinMenu {
     onClick = (event: MouseEvent) =>{
       
       if ( !this.isActive){return;}
+      event.stopPropagation();
       const canvas = document.getElementById('app') as HTMLCanvasElement;
       const rect = this.slr.getRenderer().domElement.getBoundingClientRect();
 
@@ -209,7 +211,6 @@ class WinMenu {
 
             this.slr.MoveCameraTo(20);
             this.SetActive(false);
-            fGameEngine.SetActive(true);
             fGameEngine.Reset();
             this.slr.Rerender();
             break;
@@ -224,7 +225,7 @@ class WinMenu {
           }
             
         }
-        event.stopPropagation();
+      
     }
 
 }
@@ -339,19 +340,14 @@ export class GameEngine {
 
       this.slr.Rerender();
       
-
-      // Apply a resize event Cause let's be honest. Otherwise it would make me look sloppy. 
-      /*
-      window.addEventListener('resize', ()=> {
-        this.camera.aspect = 1; //window.innerWidth / window.innerHeight;
-        this.camera.updateProjectionMatrix();
-        this.renderer.setSize(512, 512);
-        
-      })
-      */
-
       this.slr.getRenderer().domElement.addEventListener('click', (event) =>{
-        if (!this.isActive){return;}
+        if (!this.isActive){
+          if (this.slr.getCamera().position.x == 20){
+            this.isActive = true;
+          }
+          return;
+        }
+        event.stopPropagation();
         const canvas = document.getElementById('app') as HTMLCanvasElement;
         const rect = this.slr.getRenderer().domElement.getBoundingClientRect();
   
@@ -361,11 +357,10 @@ export class GameEngine {
         this.mouse.x = (x / canvas.clientWidth * 2) - 1;
         this.mouse.y = (y / canvas.clientHeight * -2) + 1;
 
-        
         this.raycaster.setFromCamera(this.mouse, this.slr.getCamera());
 
         const intersects = this.raycaster.intersectObjects(this.slr.getScene().children);
-        let s: string = null
+        let s: string = ""
          if ( this.playersTurn === PlayersTurn.X ){
             s = "X"
          }
@@ -454,7 +449,7 @@ export class GameEngine {
                   
               }  
           }
-          event.stopPropagation();
+        
       });
       
   }
